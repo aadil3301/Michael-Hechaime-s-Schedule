@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Day</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=Syne+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #111318;
+    --surface: #1a1d24;
+    --card: #20242e;
+    --border: #2a2f3d;
+    --text: #e8eaf2;
+    --muted: #5a6080;
+    --subtle: #30354a;
+    --done: #00b87a;
+    --done-dim: #00b87a15;
+    --active: #4d9fff;
+    --active-dim: #4d9fff18;
+    --next: #f0a030;
+    --next-dim: #f0a03015;
+    --accent: #e85d75;
+    --accent-dim: #e85d7515;
+    --purple: #a078f0;
+    --purple-dim: #a078f015;
+    --teal: #00c8b8;
+    --teal-dim: #00c8b815;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 1.5rem 1rem 5rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+  }
+
+  .app-title { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.03em; }
+  .app-title span { color: var(--active); }
+
+  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.3rem; }
+
+  .date-chip {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.25rem 0.6rem;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  .friday-badge {
+    font-size: 0.55rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--next);
+    background: var(--next-dim);
+    border: 1px solid var(--next);
+    padding: 0.15rem 0.5rem;
+    display: none;
+  }
+
+  /* ── TABS ── */
+  .tab-bar {
+    display: flex;
+    margin-bottom: 1.2rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 0.6rem 0.3rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: transparent;
+    border: none;
+    border-right: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .tab:last-child { border-right: none; }
+  .tab.active { background: var(--card); color: var(--text); }
+  .tab:hover:not(.active) { color: var(--text); background: var(--border); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── MOOD CHECK ── */
+  .mood-check {
+    background: var(--purple-dim);
+    border: 1px solid var(--purple);
+    border-left: 3px solid var(--purple);
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .mood-check-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--purple);
+    margin-bottom: 0.6rem;
+  }
+
+  .mood-check-q {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.6rem;
+  }
+
+  .mood-scale {
+    display: flex;
+    gap: 0.35rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .mood-btn {
+    flex: 1;
+    padding: 0.5rem 0.2rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    line-height: 1;
+  }
+
+  .mood-btn:hover { border-color: var(--purple); }
+  .mood-btn.sel { background: var(--purple-dim); border-color: var(--purple); }
+
+  .mood-saved {
+    font-size: 0.62rem;
+    color: var(--done);
+    display: none;
+    margin-top: 0.3rem;
+  }
+
+  .mood-regulation {
+    font-size: 0.63rem;
+    color: var(--muted);
+    margin-top: 0.4rem;
+    display: none;
+    line-height: 1.5;
+    padding: 0.5rem 0.7rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+  }
+
+  /* ── TOPIC OF THE DAY ── */
+  .topic-card {
+    background: var(--teal-dim);
+    border: 1px solid var(--teal);
+    border-left: 3px solid var(--teal);
+    padding: 0.85rem 1.1rem;
+    margin-bottom: 1rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .topic-label {
+    font-size: 0.56rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 0.3rem;
+  }
+
+  .topic-text {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.35;
+  }
+
+  .topic-hint {
+    font-size: 0.6rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+  }
+
+  .topic-refresh {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--teal);
+    background: transparent;
+    color: var(--teal);
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+
+  .topic-refresh:hover { background: var(--teal-dim); }
+
+  /* ── CLOCK BANNER ── */
+  .clock-banner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 0.9rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .clock-label { font-size: 0.55rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.2rem; }
+  .clock-time { font-family: 'Syne Mono', monospace; font-size: 1.8rem; font-weight: 400; letter-spacing: 0.04em; line-height: 1; }
+  .leave-block { text-align: right; }
+  .leave-value { font-family: 'Syne Mono', monospace; font-size: 1.3rem; color: var(--done); line-height: 1; }
+  .leave-delta { font-size: 0.58rem; color: var(--muted); margin-top: 0.2rem; font-family: 'Syne Mono', monospace; }
+
+  /* ── DAY PROGRESS ── */
+  .day-progress {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.65rem 1.1rem;
+    margin-bottom: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .prog-label { font-size: 0.56rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); flex-shrink: 0; }
+  .prog-track { flex: 1; height: 3px; background: var(--border); }
+  .prog-fill { height: 100%; background: var(--active); transition: width 0.4s ease; }
+  .prog-pct { font-family: 'Syne Mono', monospace; font-size: 0.62rem; color: var(--active); flex-shrink: 0; min-width: 2.5rem; text-align: right; }
+
+  /* ── NEXT STRIP ── */
+  .next-strip {
+    background: var(--active-dim);
+    border: 1px solid #4d9fff20;
+    border-left: 3px solid var(--active);
+    padding: 0.65rem 1rem;
+    margin-bottom: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .next-label { font-size: 0.54rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--active); flex-shrink: 0; }
+  .next-name { font-size: 0.78rem; font-weight: 600; color: var(--text); }
+  .next-time { font-family: 'Syne Mono', monospace; font-size: 0.65rem; color: var(--active); margin-left: auto; flex-shrink: 0; }
+
+  /* ── SCHEDULE ITEMS ── */
+  .schedule-list { display: flex; flex-direction: column; gap: 0.4rem; }
+
+  .sched-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    padding: 0.8rem 0.9rem;
+    display: grid;
+    grid-template-columns: 3.5rem 1fr auto;
+    align-items: start;
+    gap: 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .sched-item:hover { border-color: var(--subtle); }
+  .sched-item.done { background: var(--done-dim); border-color: #00b87a20; border-left-color: var(--done); }
+  .sched-item.active { background: var(--active-dim); border-color: #4d9fff20; border-left-color: var(--active); }
+  .sched-item.next-up { background: var(--next-dim); border-color: #f0a03020; border-left-color: var(--next); }
+  .sched-item.cat-break { border-left-color: #5a6080; }
+  .sched-item.cat-break.done { border-left-color: var(--done); }
+  .sched-item.cat-break.active { border-left-color: var(--active); }
+  .sched-item.cat-break.next-up { border-left-color: var(--next); }
+  .sched-item.cat-home { border-left-color: #7080c0; }
+  .sched-item.cat-home.done { border-left-color: var(--done); }
+  .sched-item.cat-home.active { border-left-color: var(--active); }
+  .sched-item.cat-home.next-up { border-left-color: var(--next); }
+  .sched-item.cat-travel { border-left-color: #c08030; }
+  .sched-item.cat-travel.done { border-left-color: var(--done); }
+  .sched-item.cat-travel.active { border-left-color: var(--active); }
+  .sched-item.cat-travel.next-up { border-left-color: var(--next); }
+  .sched-item.cat-home-park { border-left-color: var(--done); background: #00b87a08; }
+  .sched-item.cat-home-park.active { background: var(--done-dim); border-left-color: var(--done); }
+  .sched-item.cat-home-ipad { border-left-color: var(--teal); }
+  .sched-item.cat-home-ipad.active { background: var(--teal-dim); border-left-color: var(--teal); }
+  .sched-item.cat-home-end { border-left-color: var(--purple); background: var(--purple-dim); }
+
+  /* Section divider between schedule phases */
+  .sched-divider {
+    font-size: 0.54rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.5rem 0.3rem 0.2rem;
+    margin-top: 0.4rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .sched-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* iPad editable note */
+  .ipad-field {
+    margin-top: 0.4rem;
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  .ipad-input {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.62rem;
+    padding: 0.3rem 0.6rem;
+    outline: none;
+    min-width: 0;
+  }
+
+  .ipad-input:focus { border-color: var(--teal); }
+  .ipad-input::placeholder { color: var(--muted); }
+
+  .item-time-col { text-align: right; padding-top: 0.1rem; }
+  .item-time { font-family: 'Syne Mono', monospace; font-size: 0.68rem; color: var(--muted); display: block; line-height: 1.4; }
+  .item-dur { font-family: 'Syne Mono', monospace; font-size: 0.53rem; color: var(--border); display: block; }
+
+  .item-body {}
+  .item-type { font-size: 0.53rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.12rem; }
+  .item-name { font-size: 0.8rem; font-weight: 600; color: var(--text); margin-bottom: 0.12rem; letter-spacing: -0.01em; line-height: 1.25; }
+  .done .item-name { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--border); }
+  .item-note { font-size: 0.6rem; color: var(--muted); line-height: 1.45; }
+
+  /* lesson prep prompt */
+  .lesson-prep {
+    margin-top: 0.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 0.55rem 0.7rem;
+    display: none;
+  }
+
+  .sched-item.active .lesson-prep,
+  .sched-item.next-up .lesson-prep { display: block; }
+
+  .prep-title {
+    font-size: 0.56rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--next);
+    margin-bottom: 0.4rem;
+  }
+
+  .prep-checklist { list-style: none; }
+
+  .prep-item {
+    display: flex;
+    gap: 0.5rem;
+    font-size: 0.63rem;
+    color: var(--text);
+    padding: 0.2rem 0;
+    align-items: center;
+    cursor: pointer;
+    line-height: 1.3;
+  }
+
+  .prep-box {
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    color: var(--done);
+    transition: all 0.15s;
+  }
+
+  .prep-item.checked .prep-box { background: var(--done-dim); border-color: var(--done); }
+  .prep-item.checked span { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--border); }
+
+  /* break prompt */
+  .break-prompt {
+    margin-top: 0.5rem;
+    font-size: 0.6rem;
+    color: var(--muted);
+    display: none;
+    line-height: 1.5;
+    padding: 0.4rem 0.6rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+  }
+
+  .sched-item.active .break-prompt { display: block; }
+
+  .item-badge {
+    font-size: 0.52rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.16rem 0.4rem;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    background: transparent;
+    flex-shrink: 0;
+    white-space: nowrap;
+    align-self: flex-start;
+  }
+
+  .done .item-badge { color: var(--done); border-color: var(--done); background: var(--done-dim); }
+  .active .item-badge { color: var(--active); border-color: var(--active); background: var(--active-dim); }
+  .next-up .item-badge { color: var(--next); border-color: var(--next); background: var(--next-dim); }
+
+  /* ── MINI BREAK PANEL ── */
+  .mini-break-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.8rem 1.1rem;
+    margin-bottom: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .mb-label { font-size: 0.56rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); flex-shrink: 0; }
+
+  .mb-btn {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.62rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+
+  .mb-btn:hover { border-color: var(--teal); color: var(--teal); }
+  .mb-btn.used { border-color: var(--done); color: var(--done); background: var(--done-dim); }
+
+  .mb-timer {
+    font-family: 'Syne Mono', monospace;
+    font-size: 1.1rem;
+    color: var(--teal);
+    display: none;
+    margin-left: auto;
+  }
+
+  .mb-end {
+    font-size: 0.6rem;
+    color: var(--muted);
+    cursor: pointer;
+    text-decoration: underline;
+    display: none;
+  }
+
+  /* ── OOC BREAK ── */
+  .ooc-break {
+    background: var(--teal-dim);
+    border: 1px solid var(--teal);
+    border-left: 3px solid var(--teal);
+    padding: 0.8rem 1.1rem;
+    margin-bottom: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .ooc-label { font-size: 0.56rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--teal); flex-shrink: 0; }
+  .ooc-text { font-size: 0.72rem; color: var(--text); flex: 1; }
+
+  .ooc-btn {
+    padding: 0.4rem 0.9rem;
+    border: 1px solid var(--teal);
+    background: transparent;
+    color: var(--teal);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.6rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    letter-spacing: 0.06em;
+  }
+
+  .ooc-btn:hover { background: var(--teal-dim); }
+  .ooc-btn.used { opacity: 0.4; cursor: default; }
+
+  /* ── POINTS PANEL ── */
+  .pts-hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1.2rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  .pts-hero-label { font-size: 0.56rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
+  .pts-hero-value { font-family: 'Syne Mono', monospace; font-size: 2.8rem; font-weight: 400; line-height: 1; margin-bottom: 0.25rem; transition: color 0.2s; }
+  .pts-hero-leave { font-size: 0.65rem; color: var(--muted); margin-bottom: 1rem; }
+  .pts-hero-leave span { color: var(--done); font-family: 'Syne Mono', monospace; font-size: 0.82rem; }
+
+  .pts-track { height: 4px; background: var(--border); margin-bottom: 0.25rem; }
+  .pts-fill { height: 100%; transition: width 0.35s ease, background 0.2s; }
+  .pts-range { display: flex; justify-content: space-between; font-family: 'Syne Mono', monospace; font-size: 0.53rem; color: var(--border); margin-bottom: 1rem; }
+
+  .pts-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+  .pts-btn {
+    padding: 0.7rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .pts-btn.add:hover { background: var(--done-dim); border-color: var(--done); color: var(--done); }
+  .pts-btn.sub:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+  .sec-head {
+    font-size: 0.56rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 1.1rem 0 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .sec-head::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .el-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 1rem; }
+
+  .el-box { border: 1px solid var(--border); background: var(--surface); overflow: hidden; }
+  .el-head { padding: 0.4rem 0.75rem; font-size: 0.54rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; border-bottom: 1px solid var(--border); }
+  .el-box.earn .el-head { color: var(--done); background: var(--done-dim); }
+  .el-box.lose .el-head { color: var(--accent); background: var(--accent-dim); }
+
+  .el-row { display: flex; align-items: flex-start; gap: 0.55rem; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.65rem; color: var(--text); line-height: 1.4; }
+  .el-row:last-child { border-bottom: none; }
+  .el-row::before { content: '–'; color: var(--muted); flex-shrink: 0; }
+  .earn .el-row::before { content: '→'; color: var(--done); }
+  .lose .el-row::before { content: '→'; color: var(--accent); }
+
+  /* ── FIXATION CARD ── */
+  .fixation-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--purple);
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .fix-label {
+    font-size: 0.56rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--purple);
+    padding: 0.7rem 1rem 0;
+  }
+
+  .fix-intro {
+    font-size: 0.68rem;
+    color: var(--muted);
+    padding: 0.3rem 1rem 0.8rem;
+    line-height: 1.55;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .fix-steps { padding: 0.5rem 0; }
+
+  .fix-step {
+    display: grid;
+    grid-template-columns: 2rem 1fr auto;
+    gap: 0.6rem;
+    padding: 0.65rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.12s;
+    align-items: start;
+  }
+
+  .fix-step:last-child { border-bottom: none; }
+  .fix-step:hover { background: var(--card); }
+  .fix-step.checked { background: var(--done-dim); }
+
+  .fix-step-num {
+    font-family: 'Syne Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding-top: 0.1rem;
+    text-align: center;
+  }
+
+  .fix-step.checked .fix-step-num { color: var(--done); }
+
+  .fix-step-title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.2rem;
+    line-height: 1.3;
+  }
+
+  .fix-step.checked .fix-step-title { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--border); }
+
+  .fix-step-text {
+    font-size: 0.62rem;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .fix-step-text em { font-style: italic; color: var(--text); }
+
+  .fix-step-check {
+    font-size: 0.7rem;
+    color: var(--border);
+    flex-shrink: 0;
+    padding-top: 0.1rem;
+    transition: color 0.15s;
+  }
+
+  .fix-step.checked .fix-step-check { color: var(--done); content: '✓'; }
+
+  .fix-reset {
+    font-size: 0.58rem;
+    color: var(--muted);
+    text-align: center;
+    padding: 0.5rem;
+    cursor: pointer;
+    border-top: 1px solid var(--border);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.15s;
+  }
+
+  .fix-reset:hover { color: var(--text); }
+
+  .rule-row { display: flex; gap: 0.75rem; padding: 0.65rem 0.9rem; background: var(--surface); border: 1px solid var(--border); margin-bottom: 0.4rem; font-size: 0.68rem; color: var(--text); line-height: 1.5; align-items: flex-start; }
+  .rule-icon { flex-shrink: 0; font-size: 0.85rem; padding-top: 0.05rem; }
+  .rule-main { font-weight: 600; display: block; margin-bottom: 0.08rem; }
+  .rule-sub { font-size: 0.59rem; color: var(--muted); }
+
+  /* ── CHECK-IN PANEL ── */
+  .ci-card { background: var(--surface); border: 1px solid var(--border); padding: 1rem; margin-bottom: 0.8rem; }
+  .ci-q { font-size: 0.74rem; font-weight: 600; margin-bottom: 0.7rem; line-height: 1.4; }
+
+  .ci-scale { display: flex; gap: 0.35rem; }
+
+  .ci-opt {
+    flex: 1;
+    padding: 0.5rem 0.2rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.67rem;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    line-height: 1.3;
+  }
+
+  .ci-opt:hover { border-color: var(--text); color: var(--text); }
+  .ci-opt.sel { background: var(--active-dim); border-color: var(--active); color: var(--active); }
+
+  .ci-input { width: 100%; background: var(--card); border: 1px solid var(--border); color: var(--text); font-family: 'Syne', sans-serif; font-size: 0.68rem; padding: 0.48rem 0.75rem; outline: none; margin-top: 0.55rem; }
+  .ci-input:focus { border-color: var(--active); }
+  .ci-input::placeholder { color: var(--muted); }
+
+  .ci-save { width: 100%; padding: 0.7rem; background: var(--active); color: var(--bg); border: none; font-family: 'Syne', sans-serif; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-top: 0.75rem; transition: opacity 0.15s; }
+  .ci-save:hover { opacity: 0.85; }
+
+  .ci-confirm { display: none; font-size: 0.62rem; color: var(--done); text-align: center; padding: 0.4rem; border: 1px solid var(--done); background: var(--done-dim); margin-top: 0.45rem; }
+
+  .ci-log { font-size: 0.6rem; color: var(--muted); font-family: 'Syne Mono', monospace; line-height: 1.9; margin-top: 0.4rem; }
+
+  /* ── WINS LOG ── */
+  .wins-card { background: var(--surface); border: 1px solid var(--done); border-left: 3px solid var(--done); padding: 0.9rem 1rem; margin-bottom: 0.8rem; }
+  .wins-label { font-size: 0.56rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--done); margin-bottom: 0.5rem; }
+  .wins-input { width: 100%; background: var(--card); border: 1px solid var(--border); color: var(--text); font-family: 'Syne', sans-serif; font-size: 0.7rem; padding: 0.45rem 0.75rem; outline: none; }
+  .wins-input:focus { border-color: var(--done); }
+  .wins-input::placeholder { color: var(--muted); }
+  .wins-add { margin-top: 0.5rem; padding: 0.45rem 1rem; border: 1px solid var(--done); background: transparent; color: var(--done); font-family: 'Syne', sans-serif; font-size: 0.6rem; cursor: pointer; letter-spacing: 0.08em; text-transform: uppercase; transition: all 0.15s; }
+  .wins-add:hover { background: var(--done-dim); }
+  .wins-list { margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  .win-item { font-size: 0.65rem; color: var(--text); padding: 0.3rem 0.5rem; background: var(--done-dim); border: 1px solid #00b87a25; display: flex; gap: 0.5rem; align-items: center; }
+  .win-item::before { content: '✓'; color: var(--done); font-size: 0.6rem; flex-shrink: 0; }
+
+  /* ── FOOTER ── */
+  .footer-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1.5rem; }
+  .footer-btn { padding: 0.6rem; background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-family: 'Syne', sans-serif; font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; text-align: center; }
+  .footer-btn:hover { color: var(--text); border-color: var(--text); }
+
+  @media print {
+    body { background: white; color: #111; padding: 0; }
+    .tab-bar, .pts-controls, .footer-row, .ci-save, .wins-add, .topic-refresh, .mb-btn, .ooc-btn { display: none; }
+    .panel { display: block !important; }
+  }
+
+  @media (max-width: 400px) {
+    .el-grid { grid-template-columns: 1fr; }
+    .clock-time { font-size: 1.5rem; }
+    .pts-hero-value { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-title">My <span>Day</span></div>
+  <div class="header-right">
+    <div class="date-chip" id="date-chip">—</div>
+    <div class="friday-badge" id="friday-badge">Short Day</div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('schedule',this)">Schedule</button>
+  <button class="tab" onclick="switchTab('points',this)">Points</button>
+  <button class="tab" onclick="switchTab('checkin',this)">Check-In</button>
+</div>
+
+<!-- ════════════════ SCHEDULE ════════════════ -->
+<div class="panel active" id="panel-schedule">
+
+  <!-- MOOD CHECK -->
+  <div class="mood-check" id="mood-check">
+    <div class="mood-check-label">🌅 Morning Check-In — How are you arriving today?</div>
+    <div class="mood-check-q">Pick the one that fits right now</div>
+    <div class="mood-scale">
+      <button class="mood-btn" onclick="setMood(1,this)" title="Rough">😞</button>
+      <button class="mood-btn" onclick="setMood(2,this)" title="Not great">😕</button>
+      <button class="mood-btn" onclick="setMood(3,this)" title="Okay">😐</button>
+      <button class="mood-btn" onclick="setMood(4,this)" title="Good">🙂</button>
+      <button class="mood-btn" onclick="setMood(5,this)" title="Great">😄</button>
+    </div>
+    <div class="mood-regulation" id="mood-regulation"></div>
+    <div class="mood-saved" id="mood-saved">✓ Got it — let's have a good day.</div>
+  </div>
+
+  <!-- TOPIC OF THE DAY -->
+  <div class="topic-card">
+    <div>
+      <div class="topic-label">💬 Topic of the Day</div>
+      <div class="topic-text" id="topic-text">Loading...</div>
+      <div class="topic-hint" id="topic-hint"></div>
+    </div>
+    <button class="topic-refresh" onclick="newTopic()" title="New topic">↻</button>
+  </div>
+
+  <!-- CLOCK -->
+  <div class="clock-banner">
+    <div>
+      <div class="clock-label">Right now</div>
+      <div class="clock-time" id="live-clock">--:--</div>
+    </div>
+    <div class="leave-block">
+      <div class="clock-label">Leaving at</div>
+      <div class="leave-value" id="leave-display">3:05 PM</div>
+      <div class="leave-delta" id="leave-delta">Base time</div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="day-progress">
+    <div class="prog-label">Day</div>
+    <div class="prog-track"><div class="prog-fill" id="day-fill" style="width:0%"></div></div>
+    <div class="prog-pct" id="day-pct">0%</div>
+  </div>
+
+  <!-- NEXT STRIP -->
+  <div class="next-strip" id="next-strip">
+    <div class="next-label">Up next</div>
+    <div class="next-name" id="next-name">—</div>
+    <div class="next-time" id="next-time">—</div>
+  </div>
+
+  <!-- OOC BREAK -->
+  <div class="ooc-break">
+    <div class="ooc-label">Out-of-Class Break</div>
+    <div class="ooc-text">Your one out-of-class break for the day — use it when you need it.</div>
+    <button class="ooc-btn" id="ooc-btn" onclick="useOOC()">Use Now</button>
+  </div>
+
+  <!-- MINI BREAKS -->
+  <div class="mini-break-bar">
+    <div class="mb-label">Mini Breaks</div>
+    <button class="mb-btn" id="mb1" onclick="startMini(1)">Break 1</button>
+    <button class="mb-btn" id="mb2" onclick="startMini(2)">Break 2</button>
+    <div class="mb-timer" id="mb-timer">5:00</div>
+    <div class="mb-end" id="mb-end" onclick="endMini()">End break</div>
+  </div>
+
+  <!-- SCHEDULE -->
+  <div class="schedule-list" id="schedule-list"></div>
+
+  <div class="footer-row">
+    <div class="footer-btn" onclick="window.print()">Print / Save</div>
+    <div class="footer-btn" onclick="resetDay()">Reset Day</div>
+  </div>
+
+</div>
+
+<!-- ════════════════ POINTS ════════════════ -->
+<div class="panel" id="panel-points">
+
+  <div class="pts-hero">
+    <div class="pts-hero-label">Points Today</div>
+    <div class="pts-hero-value" id="pts-big">0</div>
+    <div class="pts-hero-leave">Leaving at <span id="pts-leave">3:15</span></div>
+    <div class="pts-track"><div class="pts-fill" id="pts-fill" style="width:50%;background:var(--done)"></div></div>
+    <div class="pts-range"><span>−10</span><span>0</span><span>+15</span></div>
+    <div class="pts-controls">
+      <button class="pts-btn add" onclick="adjustPts(1)">+ Add Point</button>
+      <button class="pts-btn sub" onclick="adjustPts(-1)">− Remove Point</button>
+    </div>
+  </div>
+
+  <div class="sec-head">How points work</div>
+  <div class="el-grid">
+    <div class="el-box earn">
+      <div class="el-head">✓ Earn — leave earlier</div>
+      <div class="el-row">Start work independently</div>
+      <div class="el-row">Finish the task</div>
+      <div class="el-row">Ask for help properly</div>
+      <div class="el-row">Transition on time</div>
+      <div class="el-row">Pack up independently</div>
+    </div>
+    <div class="el-box lose">
+      <div class="el-head">✗ Lose — leave later</div>
+      <div class="el-row">Needed multiple reminders</div>
+      <div class="el-row">Off-task / disrupting</div>
+      <div class="el-row">Missed a transition</div>
+      <div class="el-row">Bothered another student</div>
+      <div class="el-row">Refused the task</div>
+    </div>
+  </div>
+
+  <div class="sec-head">The rules</div>
+  <div class="rule-row">
+    <div class="rule-icon">🕐</div>
+    <div><span class="rule-main">Leave time updates with your points</span><span class="rule-sub">Every point shifts your leave time by one minute. You're in control.</span></div>
+  </div>
+  <div class="rule-row">
+    <div class="rule-icon">☕</div>
+    <div><span class="rule-main">Breaks are yours — use them well</span><span class="rule-sub">One out-of-class break + two mini breaks per lesson available each day.</span></div>
+  </div>
+  <div class="rule-row">
+    <div class="rule-icon">💬</div>
+    <div><span class="rule-main">One topic — one time</span><span class="rule-sub">If you bring up a topic, it gets one response. After that it won't be answered again in the same session. This applies to everyone — not just you.</span></div>
+  </div>
+  <div class="rule-row">
+    <div class="rule-icon">🔇</div>
+    <div><span class="rule-main">Private vs public stimming</span><span class="rule-sub">Some things that help you feel calm are fine anywhere. Others are better saved for when you're on your own or somewhere private — not because they're wrong, but because they can draw unwanted attention. If something needs to move to private, you'll get a quiet heads up.</span></div>
+  </div>
+
+  <!-- FIXATION REDIRECT TOOL -->
+  <div class="sec-head">When your brain gets stuck</div>
+  <div class="fixation-card" id="fixation-card">
+    <div class="fix-label">🔁 Feeling stuck on something?</div>
+    <div class="fix-intro">It happens. Your brain latches onto something and it's hard to let it go. That's okay — here's what to try.</div>
+    <div class="fix-steps">
+      <div class="fix-step" onclick="toggleFixStep(this)">
+        <div class="fix-step-num">1</div>
+        <div class="fix-step-body">
+          <div class="fix-step-title">Name it and park it</div>
+          <div class="fix-step-text">Say to yourself: <em>"I'm thinking about [thing] again."</em> Just noticing it is the first step. You don't have to stop thinking about it — just notice that it's happening.</div>
+        </div>
+        <div class="fix-step-check">○</div>
+      </div>
+      <div class="fix-step" onclick="toggleFixStep(this)">
+        <div class="fix-step-num">2</div>
+        <div class="fix-step-body">
+          <div class="fix-step-title">Check the schedule</div>
+          <div class="fix-step-text">If it's about leaving time, the park, or what's happening next — the answer is already on the Schedule tab. Check there first before asking anyone.</div>
+        </div>
+        <div class="fix-step-check">○</div>
+      </div>
+      <div class="fix-step" onclick="toggleFixStep(this)">
+        <div class="fix-step-num">3</div>
+        <div class="fix-step-body">
+          <div class="fix-step-title">Give yourself a time limit</div>
+          <div class="fix-step-text">Tell yourself: <em>"I'll think about this for 30 more seconds, then I'm switching to something else."</em> Set the timer on your phone if it helps. When it's done, it's done for now.</div>
+        </div>
+        <div class="fix-step-check">○</div>
+      </div>
+      <div class="fix-step" onclick="toggleFixStep(this)">
+        <div class="fix-step-num">4</div>
+        <div class="fix-step-body">
+          <div class="fix-step-title">Switch your focus deliberately</div>
+          <div class="fix-step-text">Look at the Topic of the Day on the Schedule tab. Try thinking about that instead — even for a minute. Your brain can only really focus on one thing at a time.</div>
+        </div>
+        <div class="fix-step-check">○</div>
+      </div>
+      <div class="fix-step" onclick="toggleFixStep(this)">
+        <div class="fix-step-num">5</div>
+        <div class="fix-step-body">
+          <div class="fix-step-title">Do something with your hands or body</div>
+          <div class="fix-step-text">Move around, use a fidget, press your feet into the floor, take a slow breath. Getting out of your head and into your body helps break the loop.</div>
+        </div>
+        <div class="fix-step-check">○</div>
+      </div>
+      <div class="fix-step" onclick="toggleFixStep(this)">
+        <div class="fix-step-num">6</div>
+        <div class="fix-step-body">
+          <div class="fix-step-title">It will come back around</div>
+          <div class="fix-step-text">Whatever you're thinking about isn't going anywhere. You can come back to it later — at break, at lunch, or after school. Right now isn't the time, but later is.</div>
+        </div>
+        <div class="fix-step-check">○</div>
+      </div>
+    </div>
+    <div class="fix-reset" onclick="resetFixSteps()">Reset steps</div>
+  </div>
+
+</div>
+
+<!-- ════════════════ CHECK-IN ════════════════ -->
+<div class="panel" id="panel-checkin">
+
+  <!-- WINS LOG -->
+  <div class="wins-card">
+    <div class="wins-label">🏆 Wins Today</div>
+    <input class="wins-input" type="text" id="wins-input" placeholder="Something that went well today...">
+    <button class="wins-add" onclick="addWin()">Add Win</button>
+    <div class="wins-list" id="wins-list"></div>
+  </div>
+
+  <div class="ci-card">
+    <div class="ci-q">How's your focus right now?</div>
+    <div class="ci-scale" id="s-focus">
+      <button class="ci-opt" onclick="setSc('focus',1,this)">1<br><span style="font-size:.5rem;color:var(--muted)">Low</span></button>
+      <button class="ci-opt" onclick="setSc('focus',2,this)">2</button>
+      <button class="ci-opt" onclick="setSc('focus',3,this)">3</button>
+      <button class="ci-opt" onclick="setSc('focus',4,this)">4</button>
+      <button class="ci-opt" onclick="setSc('focus',5,this)">5<br><span style="font-size:.5rem;color:var(--muted)">High</span></button>
+    </div>
+  </div>
+
+  <div class="ci-card">
+    <div class="ci-q">How are you feeling overall?</div>
+    <div class="ci-scale" id="s-mood">
+      <button class="ci-opt" onclick="setSc('mood',1,this)">😞</button>
+      <button class="ci-opt" onclick="setSc('mood',2,this)">😕</button>
+      <button class="ci-opt" onclick="setSc('mood',3,this)">😐</button>
+      <button class="ci-opt" onclick="setSc('mood',4,this)">🙂</button>
+      <button class="ci-opt" onclick="setSc('mood',5,this)">😄</button>
+    </div>
+  </div>
+
+  <div class="ci-card">
+    <div class="ci-q">Did you try the topic of the day in a conversation?</div>
+    <div class="ci-scale" id="s-topic">
+      <button class="ci-opt" onclick="setSc('topic',1,this)" style="font-size:.65rem">Not yet</button>
+      <button class="ci-opt" onclick="setSc('topic',2,this)" style="font-size:.65rem">Kind of</button>
+      <button class="ci-opt" onclick="setSc('topic',3,this)" style="font-size:.65rem">Yes!</button>
+    </div>
+    <input class="ci-input" type="text" id="ci-note" placeholder="How did it go? (optional)">
+  </div>
+
+  <button class="ci-save" onclick="saveCI()">Save Check-In</button>
+  <div class="ci-confirm" id="ci-confirm">✓ Saved.</div>
+
+  <div class="sec-head" style="margin-top:1.1rem">Today's check-ins</div>
+  <div class="ci-log" id="ci-log">No check-ins yet.</div>
+
+</div>
+
+<script>
+// ════════════════════════════════
+// CONFIG
+// ════════════════════════════════
+const BASE_H = 15, BASE_M = 5; // 3:05 PM base
+const MINS_PER_PT = 1;
+
+// Full week schedule
+const FULL_SCHEDULE = [
+  // ── PRE-SCHOOL ──
+  { time:"06:15", end:"06:20", dur:"5m",  type:"Morning",      name:"Wake Up",            note:"Good morning — new day, fresh start", cat:"home", prep:false, breakPrompt:false },
+  { time:"06:20", end:"06:35", dur:"15m", type:"Morning",      name:"iPad Time",           note:"", cat:"home-ipad", prep:false, breakPrompt:false },
+  { time:"06:35", end:"06:45", dur:"10m", type:"Morning",      name:"Get Ready",           note:"Uniform, bag packed, everything you need", cat:"home", prep:false, breakPrompt:false },
+  { time:"06:45", end:"07:15", dur:"30m", type:"Travel",       name:"Leave for School",    note:"On the way — good time to relax before the day", cat:"travel", prep:false, breakPrompt:false },
+  { time:"07:15", end:"07:40", dur:"25m", type:"Morning",      name:"Arrive & Chill",      note:"You're there early — settle in, no rush", cat:"home", prep:false, breakPrompt:false },
+  // ── SCHOOL ──
+  { time:"07:40", end:"07:50", dur:"10m", type:"Registration", name:"Registration",        note:"Get settled, take your seat, check today's plan", cat:"reg",    prep:false, breakPrompt:false },
+  { time:"07:50", end:"09:10", dur:"80m", type:"Lesson",       name:"Period 1",            note:"First lesson — stay on task, point opportunity", cat:"lesson", prep:true,  breakPrompt:false },
+  { time:"09:10", end:"10:30", dur:"80m", type:"Lesson",       name:"Period 2",            note:"Second lesson — one topic one time rule applies", cat:"lesson", prep:true,  breakPrompt:false },
+  { time:"10:30", end:"10:50", dur:"20m", type:"Break",        name:"Recess",              note:"Free time — come back on time for full credit",   cat:"break",  prep:false, breakPrompt:true  },
+  { time:"10:50", end:"12:10", dur:"80m", type:"Lesson",       name:"Period 3",            note:"Stay focused — ask for help the right way",       cat:"lesson", prep:true,  breakPrompt:false },
+  { time:"12:10", end:"13:00", dur:"50m", type:"Admin",        name:"Homeroom",            note:"Check in, admin, independent settling time",      cat:"admin",  prep:false, breakPrompt:false },
+  { time:"13:00", end:"13:55", dur:"55m", type:"Break",        name:"Lunch",               note:"Enjoy lunch — transition back on time",           cat:"break",  prep:false, breakPrompt:true  },
+  { time:"13:55", end:"15:15", dur:"80m", type:"Lesson",       name:"Period 4",            note:"Final lesson — finish strong, pack up independently", cat:"lesson", prep:true, breakPrompt:false },
+  // ── AFTER SCHOOL ──
+  { time:"15:10", end:"15:30", dur:"20m", type:"Travel",       name:"Drive Home",          note:"School day done — decompress on the way", cat:"travel", prep:false, breakPrompt:false },
+  { time:"15:30", end:"15:55", dur:"25m", type:"Home",         name:"Chill & Get Changed", note:"Get comfortable, eat something, wind down", cat:"home", prep:false, breakPrompt:false },
+  { time:"15:55", end:"18:45", dur:"2h 50m", type:"Home",      name:"Park Time",           note:"Enjoy it — you earned this", cat:"home-park", prep:false, breakPrompt:false },
+  { time:"18:45", end:"19:00", dur:"15m", type:"Home",         name:"Shower",              note:"Fresh up before the evening", cat:"home", prep:false, breakPrompt:false },
+  { time:"19:00", end:"19:20", dur:"20m", type:"Home",         name:"Study",               note:"Short and focused — get it done", cat:"home", prep:false, breakPrompt:false },
+  { time:"19:20", end:"20:00", dur:"40m", type:"Home",         name:"Dinner & Play",       note:"Eat up, then some free time", cat:"home", prep:false, breakPrompt:false },
+  { time:"20:00", end:"20:35", dur:"35m", type:"Home",         name:"Wind Down & Bed Prep",note:"Playtime, then get ready — lights out at 8:35", cat:"home", prep:false, breakPrompt:false },
+  { time:"20:35", end:"20:35", dur:"",   type:"Home",          name:"Bedtime",             note:"Good night — rest up for tomorrow", cat:"home-end", prep:false, breakPrompt:false },
+];
+
+// Friday schedule
+const FRIDAY_SCHEDULE = [
+  // ── PRE-SCHOOL ──
+  { time:"06:15", end:"06:20", dur:"5m",  type:"Morning",      name:"Wake Up",            note:"Good morning — short day today", cat:"home", prep:false, breakPrompt:false },
+  { time:"06:20", end:"06:35", dur:"15m", type:"Morning",      name:"iPad Time",           note:"", cat:"home-ipad", prep:false, breakPrompt:false },
+  { time:"06:35", end:"06:45", dur:"10m", type:"Morning",      name:"Get Ready",           note:"Uniform, bag packed, everything you need", cat:"home", prep:false, breakPrompt:false },
+  { time:"06:45", end:"07:15", dur:"30m", type:"Travel",       name:"Leave for School",    note:"On the way — Friday!", cat:"travel", prep:false, breakPrompt:false },
+  { time:"07:15", end:"07:40", dur:"25m", type:"Morning",      name:"Arrive & Chill",      note:"Early — settle in, relax before registration", cat:"home", prep:false, breakPrompt:false },
+  // ── SCHOOL ──
+  { time:"07:40", end:"07:50", dur:"10m", type:"Registration", name:"Registration",        note:"Get settled, take your seat, check today's plan", cat:"reg",    prep:false, breakPrompt:false },
+  { time:"07:50", end:"08:55", dur:"65m", type:"Lesson",       name:"Period 1",            note:"First lesson — stay on task, point opportunity", cat:"lesson", prep:true,  breakPrompt:false },
+  { time:"08:55", end:"10:05", dur:"70m", type:"Lesson",       name:"Period 2",            note:"Second lesson — one topic one time rule applies", cat:"lesson", prep:true,  breakPrompt:false },
+  { time:"10:05", end:"10:20", dur:"15m", type:"Break",        name:"Recess",              note:"Free time — come back on time",                  cat:"break",  prep:false, breakPrompt:true  },
+  { time:"10:20", end:"11:30", dur:"70m", type:"Lesson",       name:"Period 3",            note:"Last lesson of the week — strong finish!",       cat:"lesson", prep:true,  breakPrompt:false },
+  // ── AFTER SCHOOL (FRIDAY) ──
+  { time:"11:30", end:"11:50", dur:"20m", type:"Travel",       name:"Drive Home",          note:"Short day done — weekend starts now", cat:"travel", prep:false, breakPrompt:false },
+  { time:"11:50", end:"12:15", dur:"25m", type:"Home",         name:"Chill & Get Changed", note:"Get comfortable, eat something", cat:"home", prep:false, breakPrompt:false },
+  { time:"12:15", end:"18:45", dur:"Park", type:"Home",        name:"Park Time",           note:"Enjoy the weekend — you've earned it", cat:"home-park", prep:false, breakPrompt:false },
+  { time:"18:45", end:"19:00", dur:"15m", type:"Home",         name:"Shower",              note:"Fresh up before the evening", cat:"home", prep:false, breakPrompt:false },
+  { time:"19:00", end:"19:20", dur:"20m", type:"Home",         name:"Study",               note:"Short and focused", cat:"home", prep:false, breakPrompt:false },
+  { time:"19:20", end:"20:00", dur:"40m", type:"Home",         name:"Dinner & Play",       note:"Eat up, then free time", cat:"home", prep:false, breakPrompt:false },
+  { time:"20:00", end:"20:35", dur:"35m", type:"Home",         name:"Wind Down & Bed Prep",note:"Playtime, then get ready — lights out at 8:35", cat:"home", prep:false, breakPrompt:false },
+  { time:"20:35", end:"20:35", dur:"",   type:"Home",          name:"Bedtime",             note:"Good night — rest well", cat:"home-end", prep:false, breakPrompt:false },
+];
+
+// Break activities for recess/lunch prompts
+const BREAK_IDEAS = [
+  "Walk around outside if you can",
+  "Find your friend and hang out",
+  "Get some water and move around",
+  "Chill somewhere quiet if you need it",
+  "Shoot some hoops or kick a ball around",
+];
+
+// Prep checklist items
+const PREP_ITEMS = [
+  "Get your materials out",
+  "Write today's date",
+  "Write the title",
+  "Write the learning objective",
+];
+
+// Topics for 12 year olds
+const TOPICS = [
+  { text: "If you could be in any movie, which one would you pick?", hint: "Think about the characters, story, or world you'd want to live in." },
+  { text: "What would you do if you had no plans for a whole weekend?", hint: "Try asking someone else the same question and see what they say." },
+  { text: "What's a skill you'd like to learn before you're 16?", hint: "Could be anything — sport, music, cooking, coding, anything." },
+  { text: "If you could change one rule at school, what would it be?", hint: "Good conversation starter with almost anyone your age." },
+  { text: "What's the best thing you've eaten in the last month?", hint: "Food is an easy way to start a conversation with anyone." },
+  { text: "Would you rather be really fast or really strong? Why?", hint: "Would you rather questions are great for getting people talking." },
+  { text: "What's a YouTuber or creator you think is actually good?", hint: "Most people your age have an opinion on this one." },
+  { text: "If you could add one subject to school, what would it be?", hint: "Ask your friends what they'd add — you might get interesting answers." },
+  { text: "What's a place you'd like to go that you've never been?", hint: "Could be nearby or somewhere far away — anywhere counts." },
+  { text: "What's something you're better at now than you were a year ago?", hint: "Think about sports, games, schoolwork, or anything else." },
+  { text: "If you could have any animal as a pet, what would you pick?", hint: "Classic conversation topic — everyone has an answer." },
+  { text: "What's a game — video, board, or sport — you'd recommend to anyone?", hint: "Think about why you like it and what makes it good." },
+  { text: "What's something you've seen or heard recently that was actually funny?", hint: "Sharing something funny is one of the best ways to connect with people." },
+  { text: "Would you rather be able to fly or be invisible?", hint: "Follow up by asking why they'd pick what they pick." },
+  { text: "What's something you're looking forward to in the next few months?", hint: "Could be small or big — anything counts." },
+  { text: "If you could swap lives with anyone for a day, who would you pick?", hint: "A good one to ask someone else — you learn a lot about people from this." },
+  { text: "What's the hardest thing about being 12?", hint: "You might get a surprisingly honest answer from people if you ask this." },
+  { text: "What's something you think is actually overrated?", hint: "Everyone has something — food, a game, a show, a place." },
+  { text: "If school started at noon instead of the morning, would that be better or worse?", hint: "Most people your age have a strong opinion on this." },
+  { text: "What's a hobby you've tried and didn't stick with — and why?", hint: "Talking about things that didn't work out is actually a great conversation topic." },
+];
+
+// Mood regulation suggestions
+const MOOD_RESPONSES = {
+  1: "Rough start — that's okay. Take a breath before Registration. If something is really bothering you, let someone know.",
+  2: "Not a great morning. Try to give today a fair shot — things can shift. Use a mini break if you need one.",
+  3: "Okay is good enough to start. Focus on one thing at a time today.",
+  4: "Good to hear. Keep that energy going — today could be a solid one.",
+  5: "Great start! Channel that into Period 1 and see what happens."
+};
+
+// ════════════════════════════════
+// STATE
+// ════════════════════════════════
+let points = 0;
+let isFriday = false;
+let schedule = [];
+let checkins = [];
+let wins = [];
+let scVals = {};
+let moodSet = false;
+let oocUsed = false;
+let miniUsed = [false, false];
+let miniInterval = null;
+let miniSecsLeft = 0;
+let currentTopicIdx = 0;
+let prepStates = {}; // key: item index, val: set of checked prep items
+let lastActiveLessonIdx = -1; // tracks which lesson is active for per-lesson mini break reset
+let ipadNote = ''; // stores what he's playing during iPad time
+
+// ════════════════════════════════
+// TIME UTILS
+// ════════════════════════════════
+function toMins(str) {
+  const [h,m] = str.split(':').map(Number);
+  return h*60+m;
+}
+
+function toStr12(totalMins) {
+  totalMins = Math.max(0, Math.min(1439, totalMins));
+  const h = Math.floor(totalMins/60);
+  const m = totalMins%60;
+  const ampm = h>=12?'PM':'AM';
+  const h12 = h>12?h-12:h===0?12:h;
+  return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+}
+
+// ════════════════════════════════
+// CLOCK + DATE
+// ════════════════════════════════
+function tick() {
+  const now = new Date();
+  const h = now.getHours(), m = now.getMinutes();
+  const ampm = h>=12?'PM':'AM';
+  const h12 = h>12?h-12:h===0?12:h;
+  document.getElementById('live-clock').textContent = `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('date-chip').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+
+  isFriday = now.getDay() === 5;
+  schedule = isFriday ? FRIDAY_SCHEDULE : FULL_SCHEDULE;
+  document.getElementById('friday-badge').style.display = isFriday ? 'block' : 'none';
+
+  updateStatuses(now);
+  updateLeaveBase();
+}
+
+function updateLeaveBase() {
+  // On Friday base leave is 11:30
+  if (isFriday) {
+    window._BASE_H = 11; window._BASE_M = 30;
+  } else {
+    window._BASE_H = BASE_H; window._BASE_M = BASE_M;
+  }
+  updatePtsDisplay();
+}
+
+// ════════════════════════════════
+// SCHEDULE STATUSES
+// ════════════════════════════════
+function updateStatuses(now) {
+  const nowM = now.getHours()*60+now.getMinutes();
+  const dayStart = toMins("06:15");
+  const dayEnd = toMins("20:35");
+  const pct = Math.min(100,Math.max(0,((nowM-dayStart)/(dayEnd-dayStart))*100));
+  document.getElementById('day-fill').style.width = pct+'%';
+  document.getElementById('day-pct').textContent = Math.round(pct)+'%';
+
+  let nextSet = false;
+  let currentActiveLessonIdx = -1;
+
+  schedule.forEach((item,i) => {
+    const startM = toMins(item.time);
+    const endM = item.end ? toMins(item.end) : startM+45;
+    if (nowM >= endM) { item._status = 'done'; }
+    else if (nowM >= startM) { item._status = 'active'; if (item.cat === 'lesson') currentActiveLessonIdx = i; }
+    else if (!nextSet) { item._status = 'next-up'; nextSet = true; }
+    else { item._status = 'upcoming'; }
+  });
+
+  // Reset mini breaks when a new lesson becomes active
+  if (currentActiveLessonIdx !== -1 && currentActiveLessonIdx !== lastActiveLessonIdx) {
+    lastActiveLessonIdx = currentActiveLessonIdx;
+    resetMiniBreaks();
+  }
+
+  renderSchedule();
+  updateNextStrip();
+}
+
+// ════════════════════════════════
+// RENDER SCHEDULE
+// ════════════════════════════════
+function renderSchedule() {
+  const list = document.getElementById('schedule-list');
+
+  // Section divider insertion points by item name
+  const dividers = {
+    "Wake Up":        "🌅 Morning",
+    "Registration":   "🏫 School Day",
+    "Drive Home":     "🏠 After School",
+  };
+
+  list.innerHTML = schedule.map((item,i) => {
+    const s = item._status || 'upcoming';
+    const badge = s==='done'?'Done':s==='active'?'Now':s==='next-up'?'Next':'—';
+
+    // Section divider
+    let dividerHTML = '';
+    if (dividers[item.name]) {
+      dividerHTML = `<div class="sched-divider">${dividers[item.name]}</div>`;
+    }
+
+    // Lesson prep checklist
+    let prepHTML = '';
+    if (item.prep) {
+      const pKey = i;
+      const checked = prepStates[pKey] || {};
+      prepHTML = `
+        <div class="lesson-prep">
+          <div class="prep-title">📋 Get Ready</div>
+          <ul class="prep-checklist">
+            ${PREP_ITEMS.map((p,j) => `
+              <li class="prep-item ${checked[j]?'checked':''}" onclick="togglePrep(${pKey},${j})">
+                <div class="prep-box">${checked[j]?'✓':''}</div>
+                <span>${p}</span>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    // iPad editable field
+    let ipadHTML = '';
+    if (item.cat === 'home-ipad') {
+      ipadHTML = `
+        <div class="ipad-field">
+          <input class="ipad-input" type="text" placeholder="What are you playing? (tap to edit)" id="ipad-note" value="${ipadNote}" oninput="ipadNote=this.value">
+        </div>
+      `;
+    }
+
+    // Break prompt
+    let breakHTML = '';
+    if (item.breakPrompt) {
+      const idea = BREAK_IDEAS[Math.floor(Math.random()*BREAK_IDEAS.length)];
+      breakHTML = `<div class="break-prompt">💡 Idea: ${idea}</div>`;
+    }
+
+    return `
+      ${dividerHTML}
+      <div class="sched-item ${s} cat-${item.cat}" onclick="cycleItem(${i})">
+        <div class="item-time-col">
+          <span class="item-time">${item.time}</span>
+          ${item.dur ? `<span class="item-dur">${item.dur}</span>` : ''}
+        </div>
+        <div class="item-body">
+          <div class="item-type">${item.type}</div>
+          <div class="item-name">${item.name}</div>
+          ${item.note ? `<div class="item-note">${item.note}</div>` : ''}
+          ${ipadHTML}
+          ${prepHTML}
+          ${breakHTML}
+        </div>
+        <div class="item-badge">${badge}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Restore iPad input focus after re-render
+  const ipadEl = document.getElementById('ipad-note');
+  if (ipadEl) ipadEl.value = ipadNote;
+}
+
+function cycleItem(i) {
+  const order = ['upcoming','next-up','active','done'];
+  const cur = order.indexOf(schedule[i]._status || 'upcoming');
+  schedule[i]._status = order[(cur+1)%order.length];
+  renderSchedule();
+  updateNextStrip();
+}
+
+function togglePrep(pKey, j) {
+  if (!prepStates[pKey]) prepStates[pKey] = {};
+  prepStates[pKey][j] = !prepStates[pKey][j];
+  renderSchedule();
+}
+
+function updateNextStrip() {
+  const nxt = schedule.find(s => s._status==='next-up' || s._status==='active');
+  if (nxt) {
+    document.getElementById('next-name').textContent = nxt.name;
+    document.getElementById('next-time').textContent = nxt.time;
+    document.getElementById('next-strip').style.display = 'flex';
+  } else {
+    document.getElementById('next-strip').style.display = 'none';
+  }
+}
+
+// ════════════════════════════════
+// MOOD CHECK
+// ════════════════════════════════
+function setMood(val, el) {
+  if (moodSet) return;
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  const reg = document.getElementById('mood-regulation');
+  reg.textContent = MOOD_RESPONSES[val];
+  reg.style.display = 'block';
+  setTimeout(() => {
+    document.getElementById('mood-saved').style.display = 'block';
+    moodSet = true;
+  }, 600);
+}
+
+// ════════════════════════════════
+// TOPIC OF THE DAY
+// ════════════════════════════════
+function loadTopic() {
+  // Seed by date so same topic all day, changes each day
+  const now = new Date();
+  const seed = now.getFullYear()*10000 + (now.getMonth()+1)*100 + now.getDate();
+  currentTopicIdx = seed % TOPICS.length;
+  renderTopic();
+}
+
+function renderTopic() {
+  const t = TOPICS[currentTopicIdx];
+  document.getElementById('topic-text').textContent = t.text;
+  document.getElementById('topic-hint').textContent = t.hint;
+}
+
+function newTopic() {
+  currentTopicIdx = (currentTopicIdx + 1) % TOPICS.length;
+  renderTopic();
+}
+
+// ════════════════════════════════
+// OOC BREAK
+// ════════════════════════════════
+function useOOC() {
+  if (oocUsed) return;
+  oocUsed = true;
+  const btn = document.getElementById('ooc-btn');
+  btn.textContent = 'Used ✓';
+  btn.classList.add('used');
+  btn.disabled = true;
+}
+
+// ════════════════════════════════
+// MINI BREAKS
+// ════════════════════════════════
+function resetMiniBreaks() {
+  endMini();
+  miniUsed = [false, false];
+  ['mb1','mb2'].forEach((id,i) => {
+    const b = document.getElementById(id);
+    if (b) { b.classList.remove('used'); b.textContent = `Break ${i+1}`; }
+  });
+}
+
+function startMini(num) {
+  const idx = num-1;
+  if (miniUsed[idx]) return;
+  if (miniInterval) return; // one at a time
+
+  miniUsed[idx] = true;
+  document.getElementById('mb'+num).classList.add('used');
+  document.getElementById('mb'+num).textContent = `Break ${num} ✓`;
+
+  miniSecsLeft = 5 * 60; // 5 minutes
+  document.getElementById('mb-timer').style.display = 'block';
+  document.getElementById('mb-end').style.display = 'block';
+
+  miniInterval = setInterval(() => {
+    miniSecsLeft--;
+    if (miniSecsLeft <= 0) { endMini(); return; }
+    const m = Math.floor(miniSecsLeft/60);
+    const s = miniSecsLeft%60;
+    document.getElementById('mb-timer').textContent = `${m}:${String(s).padStart(2,'0')}`;
+  }, 1000);
+}
+
+function endMini() {
+  clearInterval(miniInterval);
+  miniInterval = null;
+  document.getElementById('mb-timer').style.display = 'none';
+  document.getElementById('mb-end').style.display = 'none';
+}
+
+// ════════════════════════════════
+// POINTS
+// ════════════════════════════════
+function adjustPts(delta) {
+  points = Math.max(-10, Math.min(15, points+delta));
+  updatePtsDisplay();
+}
+
+function updatePtsDisplay() {
+  const bh = window._BASE_H !== undefined ? window._BASE_H : BASE_H;
+  const bm = window._BASE_M !== undefined ? window._BASE_M : BASE_M;
+  const leaveMins = bh*60+bm - (points*MINS_PER_PT);
+  const leaveStr = toStr12(leaveMins);
+
+  document.getElementById('leave-display').textContent = leaveStr;
+  document.getElementById('pts-leave').textContent = leaveStr;
+
+  const big = document.getElementById('pts-big');
+  big.textContent = (points>=0?'+':'')+points;
+  big.style.color = points>0?'var(--done)':points<0?'var(--accent)':'var(--text)';
+
+  const delta = points*MINS_PER_PT;
+  const deltaEl = document.getElementById('leave-delta');
+  if (delta!==0) {
+    deltaEl.textContent = delta>0?`${delta} min earlier`:`${Math.abs(delta)} min later`;
+    deltaEl.style.color = delta>0?'var(--done)':'var(--accent)';
+  } else {
+    deltaEl.textContent = 'Base time';
+    deltaEl.style.color = 'var(--muted)';
+  }
+
+  const pct = Math.max(0,Math.min(100,((points+10)/25)*100));
+  const fill = document.getElementById('pts-fill');
+  fill.style.width = pct+'%';
+  fill.style.background = points>=0?'var(--done)':'var(--accent)';
+}
+
+// ════════════════════════════════
+// TABS
+// ════════════════════════════════
+function switchTab(name, btn) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ════════════════════════════════
+// CHECK-IN
+// ════════════════════════════════
+function setSc(id, val, el) {
+  scVals[id] = val;
+  document.getElementById('s-'+id).querySelectorAll('.ci-opt').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function saveCI() {
+  const now = new Date();
+  const t = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  checkins.push({
+    time: t,
+    focus: scVals.focus||'—',
+    mood: scVals.mood||'—',
+    topic: scVals.topic||'—',
+    note: document.getElementById('ci-note').value
+  });
+  renderCILog();
+  const conf = document.getElementById('ci-confirm');
+  conf.style.display='block';
+  setTimeout(()=>conf.style.display='none',2200);
+  document.querySelectorAll('.ci-opt').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('ci-note').value='';
+  Object.keys(scVals).forEach(k=>delete scVals[k]);
+}
+
+function renderCILog() {
+  const el = document.getElementById('ci-log');
+  if (!checkins.length) { el.textContent='No check-ins yet.'; return; }
+  el.innerHTML = checkins.map(c =>
+    `${c.time} · Focus ${c.focus}/5 · Mood ${c.mood}/5 · Topic ${c.topic}/3${c.note?` · "${c.note}"`:''}`
+  ).join('<br>');
+}
+
+// ════════════════════════════════
+// FIXATION REDIRECT
+// ════════════════════════════════
+function toggleFixStep(el) {
+  el.classList.toggle('checked');
+  const check = el.querySelector('.fix-step-check');
+  if (el.classList.contains('checked')) {
+    check.textContent = '✓';
+    check.style.color = 'var(--done)';
+  } else {
+    check.textContent = '○';
+    check.style.color = 'var(--border)';
+  }
+}
+
+function resetFixSteps() {
+  document.querySelectorAll('.fix-step').forEach(s => {
+    s.classList.remove('checked');
+    const check = s.querySelector('.fix-step-check');
+    check.textContent = '○';
+    check.style.color = 'var(--border)';
+  });
+}
+
+// ════════════════════════════════
+// WINS
+// ════════════════════════════════
+function addWin() {
+  const input = document.getElementById('wins-input');
+  const val = input.value.trim();
+  if (!val) return;
+  wins.push(val);
+  input.value = '';
+  renderWins();
+}
+
+function renderWins() {
+  const el = document.getElementById('wins-list');
+  if (!wins.length) { el.innerHTML=''; return; }
+  el.innerHTML = wins.map(w=>`<div class="win-item">${w}</div>`).join('');
+}
+
+// ════════════════════════════════
+// RESET
+// ════════════════════════════════
+function resetDay() {
+  if (!confirm('Reset everything for a fresh day?')) return;
+  points=0; checkins.length=0; wins.length=0;
+  Object.keys(scVals).forEach(k=>delete scVals[k]);
+  Object.keys(prepStates).forEach(k=>delete prepStates[k]);
+  schedule.forEach(s=>s._status='upcoming');
+  moodSet=false; oocUsed=false; miniUsed=[false,false];
+  lastActiveLessonIdx=-1; ipadNote='';
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('mood-regulation').style.display='none';
+  document.getElementById('mood-saved').style.display='none';
+  document.getElementById('ooc-btn').textContent='Use Now';
+  document.getElementById('ooc-btn').classList.remove('used');
+  document.getElementById('ooc-btn').disabled=false;
+  resetMiniBreaks();
+  updatePtsDisplay();
+  renderSchedule();
+  updateNextStrip();
+  renderCILog();
+  renderWins();
+  loadTopic();
+}
+
+// ════════════════════════════════
+// INIT
+// ════════════════════════════════
+window._BASE_H = BASE_H;
+window._BASE_M = BASE_M;
+schedule = FULL_SCHEDULE;
+schedule.forEach(s=>s._status='upcoming');
+loadTopic();
+tick();
+setInterval(tick, 30000);
+updatePtsDisplay();
+renderCILog();
+renderWins();
+</script>
+</body>
+</html>
